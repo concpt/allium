@@ -81,7 +81,7 @@
                         {% endif -%}
                         <td>{{ obs_bandwidth }}</td>
                         <td class="visible-md visible-lg">
-                            <a href="https://bgp.he.net/ip/{{ relay['or_addresses'][0].split(':', 1)[0]|escape }}">{{
+                            <a href="https://bgp.tools/prefix/{{ relay['or_addresses'][0].split(':', 1)[0]|escape }}">{{
                             relay['or_addresses'][0].split(':', 1)[0]|escape }}</a>
                         </td>
                         {% if relay['as'] -%}
@@ -98,7 +98,7 @@
                         {% endif -%}
                         {% if relay['as_name'] -%}
                             <td>
-                                <a href="https://bgp.he.net/{{ relay['as']|escape }}"
+                                <a href="https://bgp.tools/{{ relay['as']|escape }}"
                                    title="{{ relay['as_name']|escape }}">{{
                                 relay['as_name']|escape|truncate(length=20) }}</a>
                             </td>

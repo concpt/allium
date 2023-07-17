@@ -215,7 +215,7 @@ relay['unverified_host_names']|join('\n')|escape }}</pre>
                                 </dt>
                                 <dd>
                                     {% if relay['as_name'] -%}
-                                        {{ relay['as_name']|escape }} (<a href='https://bgp.he.net/{{ relay['as']|escape }}'>BGP</a>)
+                                        {{ relay['as_name']|escape }} (<a href='https://bgp.tools/{{ relay['as']|escape }}'>BGP</a>)
                                     {% else -%}
                                         unknown
                                     {% endif -%}
