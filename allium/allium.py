@@ -11,16 +11,9 @@ Default output directory: ./www
 
 import argparse
 import os
-import pkg_resources
 import sys
 from shutil import copytree
 from lib.relays import Relays
-
-jinja_version = pkg_resources.parse_version(
-        pkg_resources.get_distribution('jinja2').version)
-
-if jinja_version < pkg_resources.parse_version("2.11.2"):
-    sys.exit('Jinja2>=2.11.2 required')
 
 ABS_PATH = os.path.dirname(os.path.abspath(__file__))
 
