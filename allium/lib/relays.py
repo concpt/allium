@@ -9,6 +9,7 @@ import hashlib
 import json
 import os
 import re
+import sys
 import time
 import urllib.request
 from shutil import rmtree
@@ -55,7 +56,7 @@ class Relays():
         except urllib.error.HTTPError as err:
             if err.code == 304:
                 print("no onionoo update since last run, dying peacefully...")
-                return
+                sys.exit(1)
             else:
                 raise(err)
 
