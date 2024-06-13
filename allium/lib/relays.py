@@ -190,10 +190,11 @@ class Relays:
             for flag in relay["flags"]:
                 self._sort(relay, idx, "flag", flag)
 
-            for member in relay["effective_family"]:
-                if not len(relay["effective_family"]) > 1:
-                    continue
-                self._sort(relay, idx, "family", member)
+            if relay.get("effective_family"):
+                for member in relay["effective_family"]:
+                    if not len(relay["effective_family"]) > 1:
+                        continue
+                    self._sort(relay, idx, "family", member)
 
             self._sort(
                 relay, idx, "first_seen", relay["first_seen"].split(" ")[0]
