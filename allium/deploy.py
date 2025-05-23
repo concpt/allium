@@ -17,7 +17,7 @@ deploy_command = [
     "wrangler",
     "pages",
     "deploy",
-    "./public",  # Replace with your directory if different
+    "./www",  # Replace with your directory if different
     "--project-name=my-cloudflare-project-name",  # Replace with your actual project name
     "--branch=production"  # Or "main", "preview", etc.
 ]
