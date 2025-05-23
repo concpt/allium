@@ -1,47 +1,51 @@
+#!/usr/bin/env python3
+
 import os
 import subprocess
-import sys
+import boto3
 from pathlib import Path
+import sys
+
+# === Configuration ===
 
 OUTPUT_DIR = Path("www")
-BRANCH_NAME = "output"  # Change to 'output' if desired
 
-def run(cmd, cwd=None):
-    print(f"Running: {' '.join(cmd)}")
-    subprocess.run(cmd, check=True, cwd=cwd)
+# Load from environment
+R2_BUCKET_NAME = os.getenv("R2_BUCKET_NAME")
+R2_ACCESS_KEY_ID = os.getenv("R2_ACCESS_KEY_ID")
+R2_SECRET_ACCESS_KEY = os.getenv("R2_SECRET_ACCESS_KEY")
+R2_ENDPOINT_URL = os.getenv("R2_ENDPOINT_URL")
 
-def main():
-    # Run allium.py to generate output
-    run(["python3", "allium.py", "--out", str(OUTPUT_DIR)])
+# === Sanity Checks ===
+if not all([R2_BUCKET_NAME, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_ENDPOINT_URL]):
+    print("❌ Missing one or more required environment variables:")
+    print("R2_BUCKET_NAME, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_ENDPOINT_URL")
+    sys.exit(1)
 
-    if not OUTPUT_DIR.exists():
-        print(f"❌ ERROR: Output directory {OUTPUT_DIR} does not exist.")
-        sys.exit(1)
+# === Step 1: Run allium.py to generate static files ===
+print("🚀 Generating static HTML files...")
+subprocess.run(["python3", "allium.py", "--out", str(OUTPUT_DIR)], check=True)
 
-    # Set Git config
-    GITHUB_REPO = os.getenv("RENDER_GIT_REPO")  # Auto-populated by Render
-    GITHUB_ACTOR = os.getenv("GITHUB_ACTOR", "Render Deployer")
-    GITHUB_EMAIL = os.getenv("GITHUB_EMAIL", "bot@render.com")
+# === Step 2: Upload to R2 ===
+print("📤 Uploading to Cloudflare R2...")
 
-    if not GITHUB_REPO:
-        print("❌ ERROR: RENDER_GIT_REPO environment variable not set.")
-        sys.exit(1)
+session = boto3.session.Session()
+s3 = session.client(
+    service_name="s3",
+    aws_access_key_id=R2_ACCESS_KEY_ID,
+    aws_secret_access_key=R2_SECRET_ACCESS_KEY,
+    endpoint_url=R2_ENDPOINT_URL,
+)
 
-    # Use token auth if available
-    token = os.getenv("GITHUB_TOKEN")
-    if token:
-        GITHUB_REPO = GITHUB_REPO.replace("https://", f"https://{token}@")
+for file in OUTPUT_DIR.rglob("*"):
+    if file.is_file():
+        key = str(file.relative_to(OUTPUT_DIR))
+        print(f" → Uploading {key}")
+        s3.upload_file(
+            Filename=str(file),
+            Bucket=R2_BUCKET_NAME,
+            Key=key,
+            ExtraArgs={"ACL": "public-read"}  # optional if Worker handles access
+        )
 
-    # Init repo in output dir
-    run(["git", "init"], cwd=OUTPUT_DIR)
-    run(["git", "config", "user.name", GITHUB_ACTOR], cwd=OUTPUT_DIR)
-    run(["git", "config", "user.email", GITHUB_EMAIL], cwd=OUTPUT_DIR)
-    run(["git", "checkout", "-b", BRANCH_NAME], cwd=OUTPUT_DIR)
-    run(["git", "add", "."], cwd=OUTPUT_DIR)
-    run(["git", "commit", "-m", "Update static output"], cwd=OUTPUT_DIR)
-    run(["git", "push", "--force", GITHUB_REPO, f"{BRANCH_NAME}:{BRANCH_NAME}"], cwd=OUTPUT_DIR)
-
-    print("✅ Successfully pushed to GitHub branch:", BRANCH_NAME)
-
-if __name__ == "__main__":
-    main()
+print("✅ Deployment to R2 complete.")
