@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 
 OUTPUT_DIR = Path("www")
-BRANCH_NAME = "gh-pages"  # Change to 'output' if desired
+BRANCH_NAME = "output"  # Change to 'output' if desired
 
 def run(cmd, cwd=None):
     print(f"Running: {' '.join(cmd)}")
